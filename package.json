@@ -1,6 +1,6 @@
 {
   "name": "wallid-wallet",
-  "version": "1.0.15",
+  "version": "1.0.19",
   "description": "wallid",
   "private": true,
   "dependencies": {
