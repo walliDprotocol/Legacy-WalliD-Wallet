@@ -46,6 +46,7 @@ export default new Vuex.Store({
     request: API.getNextRequest(),
     debug: null,
     unlocked: API.getState().unlocked,
+    currentCred: null,
   },
   getters: {
     address: (state) => state.address,
@@ -57,6 +58,7 @@ export default new Vuex.Store({
     state: (state) => state,
     identities: (state) => state.identities,
     credentials: (state) => state.credentials,
+    currentCred: (state) => state.currentCred,
   },
   actions: {
     // []: ({ commit, state }) => {
@@ -82,7 +84,7 @@ export default new Vuex.Store({
       }).then((site) => {
         state.debug('Current site: ', site);
         state.debug('Existing connections: ', state.connections);
-        if (state.connections) {
+        if (state.connections && site) {
           let connectedSite = state.connections.find((e) => {
             return state.getDomain(e.url) == state.getDomain(site.url) ? e : '';
           });
@@ -585,6 +587,9 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    setCurrentCred(state, value) {
+      state.currentCred = value;
+    },
     updateCredentials(state, value) {
       state.credentials = value;
     },

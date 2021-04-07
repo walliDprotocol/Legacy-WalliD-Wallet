@@ -56,12 +56,12 @@
       <v-col cols="12">
         <a
           class="download-button"
-          :class="{ disabled: !card.userData.pdf_url }"
-          :href="card.userData.pdf_url"
+          :class="{ disabled: !downloadURL }"
+          :href="downloadURL"
           target="_blank"
           style="text-decoration:none"
         >
-          <v-btn :disabled="!card.userData.pdf_url" text class="advance-btn">
+          <v-btn :disabled="!downloadURL" text class="advance-btn">
             {{ $t("credentials.menu[2]") }}
           </v-btn>
         </a>
@@ -80,6 +80,13 @@ import CustomCard from "../components/CustomCard";
 import { mapGetters } from "vuex";
 const FILESTACK = "https://www.filestackapi.com/api/file/";
 
+const WALLID_DOMAINS = [
+  "https://demo.mycredentials.wallid.io",
+  "http://localhost",
+];
+
+const PDF_URL = "https://demo.mycredentials.wallid.io/ViewCredential/";
+
 export default {
   components: {
     WalletAddress,
@@ -91,7 +98,7 @@ export default {
     proofPage() {
       this.$router.push({
         name: "Proof",
-        params: { card: this.$route.params.card },
+        params: { card: this.currentCred },
       });
     },
   },
@@ -148,7 +155,18 @@ export default {
     }
   },
   computed: {
-    ...mapGetters(["address"]),
+    ...mapGetters(["address", "currentCred"]),
+
+    downloadURL() {
+      if (
+        this.connected &&
+        new RegExp(WALLID_DOMAINS.join("|")).test(this.connected.url)
+      ) {
+        // At least one match
+        return PDF_URL + this.card.id;
+      }
+      return this.card.userData.pdf_url;
+    },
   },
   data() {
     return {
