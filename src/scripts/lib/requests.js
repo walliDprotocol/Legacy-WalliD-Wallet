@@ -20,13 +20,14 @@ const RequestAPIMethods = {
   },
   wallid_extract: {
     popup: false,
-    level: 1,
-    executor: ['wallet', 'signERC191Message'], //CHANGE
+    level: 2,
+    executor: ['identities', 'extractIdentity'], //CHANGE
   },
   wallid_import: {
     popup: false,
+    main_controller: true,
     level: 1,
-    executor: ['wallet', 'signERC191Message'], //CHANGE
+    executor: ['importIdentity_v2'],
   },
   wallid_import_cred: {
     main_controller: true,
@@ -70,6 +71,11 @@ const RequestAPIMethods = {
   wallet_sign: {
     level: 2,
     executor: ['wallet', 'signEthereumMessage'],
+  },
+
+  wallet_verify: {
+    level: 2,
+    executor: ['wallet', 'verifyEthereumSignedMessage'],
   },
   wallid_open: {
     popup: true,
