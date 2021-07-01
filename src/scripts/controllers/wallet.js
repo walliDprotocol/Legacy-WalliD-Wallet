@@ -40,11 +40,11 @@ export default class WalletController {
     return new WalletController(Wallet.fromPrivateKey(pk));
   }
   static initFromMnemonic(mnemonic) {
-    const seed = bip39.mnemonicToSeedSync(mnemonic).toString('hex');
+    const seed = bip39.mnemonicToSeedSync(mnemonic)
     const hdwallet = hdkey.fromMasterSeed(seed);
     const root = hdwallet.derivePath(this.HDPath);
-    const firstChild = root.deriveChild(1);
-    return new WalletController(firstChild.getWallet());
+    const firstChild = root.deriveChild(0);
+	return new WalletController(firstChild.getWallet());
   }
 
   // Returns
