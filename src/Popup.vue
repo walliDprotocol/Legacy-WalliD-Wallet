@@ -1,13 +1,12 @@
 <template>
   <v-app class="plugin">
-    <v-container fluid class="router-views pa-3">
+    <v-container fluid class="router-views pa-0">
       <router-view :hideAppHeader="hideAppHeader"></router-view>
     </v-container>
   </v-app>
 </template>
 
 <script>
-import * as bip39 from 'bip39';
 import MainContainer from './views/MainContainer';
 import { mapGetters } from 'vuex';
 export default {

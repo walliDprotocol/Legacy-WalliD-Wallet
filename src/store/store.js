@@ -23,10 +23,13 @@ import {
   SIGN,
   GEN_PROOF,
   SHARE,
+  SHARE_PROFILE,
   IMPORT_CRED,
   IMPORT_SIGN,
   DELETE_CRED,
 } from './actions';
+
+import * as modules from './modules';
 
 const { API } = chrome.extension.getBackgroundPage();
 import axios from 'axios';
@@ -35,6 +38,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   //initial state
+  modules,
   state: {
     address: API.getState().address,
     completedOnboarding: API.getState().initialized,
@@ -43,6 +47,8 @@ export default new Vuex.Store({
     initialized: API.getState().initialized,
     identities: API.getState().identities,
     credentials: API.getState().credentials,
+    profiles: API.getState().profiles,
+    currentProfile: null,
     request: API.getNextRequest(),
     debug: null,
     unlocked: API.getState().unlocked,
@@ -59,6 +65,9 @@ export default new Vuex.Store({
     identities: (state) => state.identities,
     credentials: (state) => state.credentials,
     currentCred: (state) => state.currentCred,
+
+    profiles: (state) => state.profiles,
+    currentProfile: (state) => state.currentProfile,
   },
   actions: {
     // []: ({ commit, state }) => {
@@ -183,6 +192,7 @@ export default new Vuex.Store({
       commit('updateOnboarding', API.getState().initialized);
       commit('updateIdentities', API.getState().identities);
       commit('updateCredentials', API.getState().credentials);
+      commit('updateProfiles', API.getState().profiles);
 
       dispatch(UPDATE_CONNECTED);
       // Add Refresh connection ( function on MainContainer.vue created() )
@@ -589,8 +599,14 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    currentProfile(state, value) {
+      state.currentProfile = value;
+    },
     setCurrentCred(state, value) {
       state.currentCred = value;
+    },
+    updateProfiles(state, value) {
+      state.profiles = value;
     },
     updateCredentials(state, value) {
       state.credentials = value;
