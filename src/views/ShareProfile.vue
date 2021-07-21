@@ -64,7 +64,10 @@
                         </v-col>
                         <v-col cols="12" class="py-0">
                           <p class="sub-title-fields text-left">
-                            {{ profile.username }}
+                            {{
+                              profile.profileData.screen_name ||
+                                profile.username
+                            }}
                           </p>
                         </v-col>
                       </v-row>
@@ -112,7 +115,7 @@
               :isLoading="isLoading"
               @click="generateProof"
               :disabled="isDisabled"
-              class="advance-btn inverted-colors "
+              class="advance-btn inverted-colors float"
             >
               {{ $t('profiles.proof.buttonGenProof') }}
             </v-btn>
@@ -155,7 +158,7 @@ import StoredProfileImg from '../components/StoredProfileImg';
 import { mapGetters } from 'vuex';
 import { SHARE_PROFILE } from '../store/actions';
 
-const VERIFY_URL = 'https://demo.verify.wallid.io/Verify/Social/';
+const VERIFY_URL = 'https://verify.wallid.io/Verify/Social/';
 
 export default {
   components: {
@@ -166,6 +169,9 @@ export default {
     CopyHover,
     StoredProfileImg,
     CopyPaste,
+  },
+  beforeDestroy() {
+    this.$store.commit('currentProfile', null);
   },
   created() {
     console.log('currentProfile', this.currentProfile);
@@ -352,6 +358,10 @@ export default {
       text-align: left;
       color: var(--teal-blue) !important;
     }
+  }
+  .advance-btn.float {
+    position: fixed !important;
+    left: 20px !important;
   }
 }
 </style>

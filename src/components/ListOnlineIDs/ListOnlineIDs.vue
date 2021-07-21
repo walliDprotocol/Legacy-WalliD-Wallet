@@ -26,7 +26,10 @@
                   </v-col>
                   <v-col cols="12" class="py-0">
                     <p class="sub-title-fields">
-                      {{ profile.username }}
+                      {{
+                        profile.profileData.screen_name ||
+                          profile.profileData.username
+                      }}
                     </p>
                   </v-col>
                 </v-row>
@@ -63,6 +66,13 @@
                       >{{ $t('profiles.menu[1]') }}</v-list-item-title
                     >
                   </v-list-item>
+                  <v-list-item>
+                    <v-list-item-title
+                      class="SECUNDARY-LINKS text-left"
+                      @click="deleteProfile(profile)"
+                      >{{ $t('profiles.menu[2]') }}</v-list-item-title
+                    >
+                  </v-list-item>
                 </v-list>
               </v-menu>
             </v-col>
@@ -81,7 +91,7 @@
                   <v-col cols="12" class="py-0 pr-0">
                     <a
                       class="MAIN-LINKS"
-                      href="https://www.dev.wallid.io/Setup/ChooseIdentity?online=true"
+                      href="https://www.wallid.io/Setup/ChooseIdentity?online=true"
                       target="_blank"
                     >
                       {{ $t('profiles.addNew') }}
@@ -141,6 +151,11 @@ export default {
   },
 
   methods: {
+    deleteProfile(profile) {
+      this.$store.commit('showDeleteConfirmation', true);
+
+      this.$store.commit('currentProfile', profile);
+    },
     viewProfileInfo(profile) {
       console.log('viewProfileInfo', profile);
 

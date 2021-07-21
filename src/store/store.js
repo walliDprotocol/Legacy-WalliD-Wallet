@@ -27,6 +27,7 @@ import {
   IMPORT_CRED,
   IMPORT_SIGN,
   DELETE_CRED,
+  DELETE_PROFILE,
 } from './actions';
 
 import * as modules from './modules';
@@ -53,8 +54,10 @@ export default new Vuex.Store({
     debug: null,
     unlocked: API.getState().unlocked,
     currentCred: null,
+    showDeleteConfirmation: false,
   },
   getters: {
+    showDeleteConfirmation: (state) => state.showDeleteConfirmation,
     address: (state) => state.address,
     completedOnboarding: (state) => state.completedOnboarding,
     connections: (state) => state.connections,
@@ -65,7 +68,6 @@ export default new Vuex.Store({
     identities: (state) => state.identities,
     credentials: (state) => state.credentials,
     currentCred: (state) => state.currentCred,
-
     profiles: (state) => state.profiles,
     currentProfile: (state) => state.currentProfile,
   },
@@ -232,6 +234,21 @@ export default new Vuex.Store({
           });
       });
     },
+
+    [DELETE_PROFILE]: ({ commit, state }, id) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action DELETE_PROFILE');
+        state.debug('Data: ', id);
+        API.deleteProfile(id)
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((e) => {
+            console.error(e);
+            reject(e);
+          });
+      });
+    },
     [ENCRYPT]: ({ commit, state }, { data }) => {
       return new Promise((resolve, reject) => {
         console.log('Action ENCRYPT');
@@ -270,7 +287,7 @@ export default new Vuex.Store({
         API.signPrivateKey(data.url)
           .then((res) => {
             console.log(res);
-            let url = 'https://demo.dca.wallid.io/api/v1/proof/share';
+            let url = 'https://dca.wallid.io/api/v1/proof/share';
             data.url_sig = res;
             axios(url, {
               method: 'POST',
@@ -599,6 +616,9 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    showDeleteConfirmation(state, value) {
+      state.showDeleteConfirmation = value;
+    },
     currentProfile(state, value) {
       state.currentProfile = value;
     },
