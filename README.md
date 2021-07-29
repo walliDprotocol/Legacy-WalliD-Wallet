@@ -6,7 +6,7 @@ Detailed information about the *scripts* folder can be found bellow.
 ___
 
 ### /src/scripts:
-* **controllers:** a collection of controller modules built around clearly defined data entities. These modules are responsible for managing the plugin's multiple data entities and implementing all relevant functionalities relating to them.<br>
+* **controllers:** a collection of controller modules built around clearly defined data entities. These modules are responsible for managing the plugin's multiple data entities and implementing all relevant functionalities relating to them.
 
 * **lib:** a collection of functional modules responsible for the implementation of functionalities not specific to any controller. It contains miscelaneous utility functions meant to be imported and used by the main application instance, controllers, or any other scripts like the content-script.  
 
