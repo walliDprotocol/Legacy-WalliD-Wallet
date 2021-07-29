@@ -633,6 +633,12 @@ export default class AppController {
   // EXPOSED TO THE UI SUBSYSTEM
   //=============================================================================
 
+  /**
+   * Returns app controller's state.
+   * Allows the UI access to the internal controller state.
+   * 
+   * @returns {Object} uiState
+   */
   getState() {
     const vault = this.#store.getState().vault;
     const wallet = this.#store.getState().wallet;
@@ -717,6 +723,16 @@ export default class AppController {
     );
   }
 
+  /**
+   * Exposes the extension's functionalities to web applications.
+   * This method is called from within background.js.
+   * Available methods and respective details are described in lib/requests.js.
+   * Available fields for the method objects are defined in lib/requests.js.
+   * 
+   * @param {string} method - name of the method to execute
+   * @param {Array} params - array containing the parameters 
+   * @param string} origin - url of the caller web site
+   */
   requestAPI(method, params = [], origin) {
     const requestHandler = function(details) {
       let promise = {};

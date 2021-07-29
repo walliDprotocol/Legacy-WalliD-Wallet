@@ -2,6 +2,15 @@ const InitState = {
   identities: [],
 };
 
+/**
+ * Identities Controller
+ * 
+ * Handles all operations related to the user's identities.
+ * Identities differ from credentials in their format and the data they contain.
+ * Identities are a more clearly defined subset of credentials.
+ * 
+ * Provides specific methods for adding and removing stored credentials.
+ */
 export default class IdentitiesController {
   #identities;
 

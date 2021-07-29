@@ -11,10 +11,11 @@ const InitState = {
 };
 
 /**
- * @class Vault
+ * Vault
  *
- * Class for managing plugin's local storage.
- * Stores WalliD user wallet data.
+ * Manages the plugin's local storage (plugin's permanent data).
+ * Responsible for storing the controllers' internal state through controller serialization.
+ * Keeps the local storage encrypted with the user's password.
  */
 
 export default class Vault {
@@ -145,7 +146,7 @@ export default class Vault {
     return Promise.resolve(this._putData(2, conns, password));
   }
 
-  // Updates vault with @conns
+  // Updates vault with @ids
   putIdentities(ids, password) {
     console.log('putIdentities');
     return Promise.resolve(this._putData(3, ids, password));
