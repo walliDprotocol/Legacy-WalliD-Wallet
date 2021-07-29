@@ -1,6 +1,6 @@
 <template>
   <v-container class="home">
-    <v-row class="pt-0 mt-0">
+    <v-row class="pt-0">
       <v-col cols="12" class="pt-0 pb-0">
         <jazz-icon :address="address" :id="'home'" :size="58" :margin="4" />
       </v-col>
@@ -19,24 +19,33 @@
       </v-col>
       <v-col class="tabs pa-0 pt-1" cols="12">
         <v-tabs :show-arrows="false" fixed-tabs v-model="tab">
+          <v-tab href="#tab-2" class="MENU-SELECTED">{{
+            $t('home.tabs[1]')
+          }}</v-tab>
           <v-tab href="#tab-1" class="MENU-SELECTED">{{
             $t('home.tabs[0]')
           }}</v-tab>
-          <v-tab href="#tab-2" class="MENU-SELECTED">{{
-            $t('home.tabs[1]')
+          <v-tab href="#tab-3" class="MENU-SELECTED">{{
+            $t('home.tabs[2]')
           }}</v-tab>
         </v-tabs>
 
         <v-tabs-items v-model="tab">
-          <v-tab-item value="tab-1">
-            <ListCrendentials />
-          </v-tab-item>
-
           <v-tab-item value="tab-2">
+            <ListOnlineIDs />
+          </v-tab-item>
+          <v-tab-item value="tab-1">
             <ListIDs />
+          </v-tab-item>
+          <v-tab-item value="tab-3">
+            <ListCrendentials />
           </v-tab-item>
         </v-tabs-items>
       </v-col>
+      <DeleteConfirmationModal
+        v-if="showDeleteConfirmation"
+        @close="close()"
+      ></DeleteConfirmationModal>
     </v-row>
   </v-container>
 </template>
@@ -46,6 +55,10 @@ import WalletState from '../components/WalletState';
 import WalletAddress from '../components/WalletAddress';
 import ListIDs from '../components/ListIDs';
 import ListCrendentials from '../components/ListCrendentials';
+import ListOnlineIDs from '../components/ListOnlineIDs';
+
+import DeleteConfirmationModal from '../modals/DeleteConfirmationModal';
+
 import { mapGetters } from 'vuex';
 
 export default {
@@ -54,16 +67,23 @@ export default {
     WalletAddress,
     ListIDs,
     ListCrendentials,
+    ListOnlineIDs,
+    DeleteConfirmationModal,
   },
   computed: {
-    ...mapGetters(['address', 'identities', 'credentials']),
+    ...mapGetters([
+      'address',
+      'identities',
+      'credentials',
+      'showDeleteConfirmation',
+    ]),
   },
-  mounted() {
-    if (this.credentials.length == 0) {
-      this.tab = 'tab-2';
-    }
+  mounted() {},
+  methods: {
+    close() {
+      this.$store.commit('showDeleteConfirmation', false);
+    },
   },
-  methods: {},
   data() {
     return {
       iconSet: false,
@@ -86,7 +106,6 @@ export default {
 .home {
   .tabs {
     min-width: 400px;
-    margin-left: -8px;
     .v-slide-group__prev,
     .v-slide-group__next {
       display: none !important;

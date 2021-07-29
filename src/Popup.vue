@@ -1,13 +1,12 @@
 <template>
   <v-app class="plugin">
-    <v-container fluid class="router-views pa-3">
+    <v-container fluid class="router-views pa-0">
       <router-view :hideAppHeader="hideAppHeader"></router-view>
     </v-container>
   </v-app>
 </template>
 
 <script>
-import * as bip39 from 'bip39';
 import MainContainer from './views/MainContainer';
 import { mapGetters } from 'vuex';
 export default {
@@ -41,7 +40,7 @@ export default {
       // return self.$i18n.locale;
     });
 
-    this.$i18n.locale = check.length > 0 ? check[0].id : 'en';
+    this.$i18n.locale = 'en'; //check.length > 0 ? check[0].id : 'en';
   },
 
   methods: {},

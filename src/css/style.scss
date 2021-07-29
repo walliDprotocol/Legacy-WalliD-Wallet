@@ -9,6 +9,7 @@
   --coral: #e95e5e;
   --turquoise-green: #00e284;
   --pale-blue: #dbedef;
+  --light-teal: #00acbc;
 }
 .wallet-tooltip {
   &.v-tooltip__content {
@@ -101,6 +102,28 @@
 }
 
 #app.plugin {
+  .router-views {
+    // max-height: 600px;
+    // overflow-y: auto;
+  }
+  .list-storage {
+    overflow-y: hidden;
+    overflow-x: hidden;
+    height: 200px;
+    background-color: var(--white);
+
+    .card {
+      // height: 82px;
+      background-color: white;
+    }
+  }
+  .hover-blue {
+    &:hover svg {
+      g {
+        fill: #009fb1;
+      }
+    }
+  }
   .connected-site {
     border-color: var(--turquoise-green) !important;
   }
@@ -109,6 +132,24 @@
     background-color: var(--black) !important;
   }
 
+  .address-balloon {
+    padding: 7px 7px 7px 8px;
+    border-radius: 15px;
+    background-color: #dbedef;
+    max-width: 32%;
+    margin: 0 auto;
+    p {
+      margin-bottom: 0;
+
+      font-size: 13px;
+      font-weight: 600;
+      font-stretch: normal;
+      font-style: normal;
+      line-height: normal;
+      letter-spacing: normal;
+      color: #009fb1;
+    }
+  }
   .password-input {
     .v-input .v-messages__wrapper {
       font-size: 13px;
@@ -160,13 +201,13 @@
     }
   }
   * {
-    font-family: "Montserrat";
+    font-family: 'Montserrat';
   }
   .v-application--wrap {
     height: 100%;
   }
   .container {
-    padding: 8px;
+    // padding: 8px;
     p {
       margin: 0;
     }
@@ -200,25 +241,30 @@
     width: 100%;
     padding: 11px;
     height: unset;
+    background-color: var(--teal-blue);
+
     .v-ripple__container {
       color: #87c2c9;
     }
     .v-btn__content,
     & {
       font-family: Montserrat;
-      font-size: 16px;
-      font-weight: 500;
+      font-size: 15px;
+      font-weight: normal;
       font-stretch: normal;
       font-style: normal;
       line-height: normal;
       letter-spacing: normal;
       text-align: center;
       text-transform: none;
-      color: var(--teal-blue);
+      color: var(--white);
     }
-    &::before,
+    &::before {
+      content: none;
+    }
     &:hover {
-      background-color: #c7eaee;
+      // background-color: #c7eaee;
+      opacity: 0.75;
     }
 
     &.v-btn--disabled {
@@ -228,6 +274,19 @@
         color: #d8d8d8;
       }
     }
+    &.inverted-colors {
+      background-color: #009fb1;
+      .v-btn__content {
+        color: #ffffff;
+        font-weight: normal;
+      }
+    }
+    &.float {
+      position: absolute;
+      bottom: 12px;
+      max-width: 360px;
+      left: 8px;
+    }
   }
 
   .cancel-btn {
@@ -235,25 +294,28 @@
     width: 100%;
     padding: 11px;
     height: unset;
-    background-color: var(--very-light-grey);
+    background-color: white;
     .v-ripple__container {
       color: #d8d8d8;
     }
     .v-btn__content {
       font-family: Montserrat;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 15px;
+      font-weight: normal;
       font-stretch: normal;
       font-style: normal;
       line-height: normal;
       letter-spacing: normal;
       text-align: center;
       text-transform: none;
-      color: var(--charcoal-grey);
+      color: var(--teal-blue);
     }
-    &::before,
+    &::before {
+      content: none;
+    }
     &:hover {
-      background-color: #d8d8d8;
+      opacity: 0.75;
+      // background-color: #d8d8d8;
     }
 
     &.v-btn--disabled {
@@ -336,13 +398,16 @@
 
   .sub-title-fields {
     font-family: Montserrat;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 500;
     font-stretch: normal;
     font-style: normal;
     line-height: 1.5;
     letter-spacing: normal;
     color: var(--charcoal-grey);
+    &--bold {
+      font-weight: 600;
+    }
   }
   .normal-text {
     font-family: Montserrat;
@@ -356,7 +421,7 @@
   }
   .MENU-SELECTED {
     font-family: Montserrat;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 600;
     font-stretch: normal;
     font-style: normal;
@@ -364,11 +429,35 @@
     letter-spacing: normal;
     text-transform: none;
     color: var(--charcoal-grey);
+    padding: 0 10px;
     &:hover {
       color: var(--teal-blue);
     }
   }
 
+  .MAIN-LINKS {
+    font-size: 15px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.4;
+    letter-spacing: normal;
+    display: block;
+    text-align: left;
+    color: var(--light-teal);
+    text-decoration: none;
+  }
+
+  .light-grey-text {
+    font-family: Montserrat;
+    font-size: 11px;
+    font-weight: normal;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 2.45;
+    letter-spacing: normal;
+    color: #4f5864;
+  }
   .SECUNDARY-LINKS {
     font-family: Montserrat;
     font-size: 14px;

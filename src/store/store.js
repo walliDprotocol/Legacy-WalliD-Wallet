@@ -23,10 +23,14 @@ import {
   SIGN,
   GEN_PROOF,
   SHARE,
+  SHARE_PROFILE,
   IMPORT_CRED,
   IMPORT_SIGN,
   DELETE_CRED,
+  DELETE_PROFILE,
 } from './actions';
+
+import * as modules from './modules';
 
 const { API } = chrome.extension.getBackgroundPage();
 import axios from 'axios';
@@ -35,6 +39,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   //initial state
+  modules,
   state: {
     address: API.getState().address,
     completedOnboarding: API.getState().initialized,
@@ -43,12 +48,16 @@ export default new Vuex.Store({
     initialized: API.getState().initialized,
     identities: API.getState().identities,
     credentials: API.getState().credentials,
+    profiles: API.getState().profiles,
+    currentProfile: null,
     request: API.getNextRequest(),
     debug: null,
     unlocked: API.getState().unlocked,
     currentCred: null,
+    showDeleteConfirmation: false,
   },
   getters: {
+    showDeleteConfirmation: (state) => state.showDeleteConfirmation,
     address: (state) => state.address,
     completedOnboarding: (state) => state.completedOnboarding,
     connections: (state) => state.connections,
@@ -59,6 +68,8 @@ export default new Vuex.Store({
     identities: (state) => state.identities,
     credentials: (state) => state.credentials,
     currentCred: (state) => state.currentCred,
+    profiles: (state) => state.profiles,
+    currentProfile: (state) => state.currentProfile,
   },
   actions: {
     // []: ({ commit, state }) => {
@@ -183,6 +194,7 @@ export default new Vuex.Store({
       commit('updateOnboarding', API.getState().initialized);
       commit('updateIdentities', API.getState().identities);
       commit('updateCredentials', API.getState().credentials);
+      commit('updateProfiles', API.getState().profiles);
 
       dispatch(UPDATE_CONNECTED);
       // Add Refresh connection ( function on MainContainer.vue created() )
@@ -213,6 +225,21 @@ export default new Vuex.Store({
         console.log('Action DELETE_CRED');
         state.debug('Data: ', id);
         API.deleteCredential(id)
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((e) => {
+            console.error(e);
+            reject(e);
+          });
+      });
+    },
+
+    [DELETE_PROFILE]: ({ commit, state }, id) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action DELETE_PROFILE');
+        state.debug('Data: ', id);
+        API.deleteProfile(id)
           .then((res) => {
             resolve(res);
           })
@@ -589,8 +616,17 @@ export default new Vuex.Store({
     },
   },
   mutations: {
+    showDeleteConfirmation(state, value) {
+      state.showDeleteConfirmation = value;
+    },
+    currentProfile(state, value) {
+      state.currentProfile = value;
+    },
     setCurrentCred(state, value) {
       state.currentCred = value;
+    },
+    updateProfiles(state, value) {
+      state.profiles = value;
     },
     updateCredentials(state, value) {
       state.credentials = value;

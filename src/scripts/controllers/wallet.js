@@ -60,9 +60,9 @@ export default class WalletController {
   }
 
   signEthereumMessage(_message) {
-    const message = ethUtil.stripHexPrefix(Buffer.from(_message));
+    // const message = ethUtil.stripHexPrefix(Buffer.from(_message));
     const privateKey = this.#wallet.getPrivateKey();
-    const msgSig = ethSigUtil.personalSign(privateKey, { data: message });
+    const msgSig = ethSigUtil.personalSign(privateKey, { data: _message });
     return Promise.resolve(msgSig);
   }
 
@@ -98,9 +98,13 @@ export default class WalletController {
   };
 
   signECMessage(_message) {
+    console.log(_message);
     return Promise.resolve(ethUtil.stripHexPrefix(Buffer.from(_message, 'hex')))
       .then((data) => ethUtil.ecsign(data, this.#wallet.getPrivateKey()))
-      .then(({ v, r, s }) => ethSigUtil.concatSig(v, r, s));
+      .then(({ v, r, s }) => ethSigUtil.concatSig(v, r, s))
+      .catch((err) => {
+        console.error(err);
+      });
   }
 
   encryptData = function(data) {
