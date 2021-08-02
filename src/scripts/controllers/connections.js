@@ -1,3 +1,12 @@
+/**
+ * Connections Controller
+ * 
+ * Handles all the data related to the web sites connected to the plugin, including
+ * their URL, user friendly name and display icon.
+ * It allows adding and removing new connections, as well as retrieving
+ * connection specific data such as its access level.
+ */
+
 export default class ConnectionsController {
     #connections; //array of connections
 

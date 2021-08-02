@@ -2,6 +2,13 @@ const InitState = {
   credentials: [],
 };
 
+/**
+ * Credentials Controller
+ * 
+ * Handles all operations related to the user's credentials.
+ * Provides specific methods for adding and removing stored credentials.
+ * Credentials differ from identities in that they are more abstract assets.
+ */
 export default class CredentialsController {
   #credentials;
 

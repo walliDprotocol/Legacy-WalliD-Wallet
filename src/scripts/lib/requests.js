@@ -1,3 +1,13 @@
+/**
+ * RequestAPI Method object fields:
+ * 
+ * -> level: the access level required in order to access and execute the method;
+ * -> executor: an array with the execution path of the method: [<controller_module>, <controller_function>]
+ * -> main_controller: flag indicating ig the method to execute is defined in the AppController. If the flag 
+ * is present, the executor field will be an array containing only one element with the format [<app_controller_function>].
+ * -> popup: flag indicating if a popup window should be presented to the user upon calling the method.
+ */
+
 const RequestAPIMethods = {
   wallid_connect: {
     popup: true,

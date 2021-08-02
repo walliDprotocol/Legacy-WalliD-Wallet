@@ -8,11 +8,13 @@ import * as eth from '../lib/eth-utils';
 /**
  *  WalletController
  *
- *  Class is wrapper for Wallet:ethereumjs-wallet
+ *  Class is wrapper for ethereumjs-wallet.
+ *  Exposes operations related to the wallet, namely cryptographic operations 
+ * using the wallet's private key.
  *  Adds cryptographic capabilities to Wallet:
- *    - Sign Ethereum Transactions
- *    - Sign Messages
- *    - Encrypt/decrypt typed data objects
+ *    -> Sign Ethereum Transactions
+ *    -> Sign Messages
+ *    -> Encrypt/decrypt typed data objects
  */
 
 export default class WalletController {
