@@ -1,4 +1,4 @@
-## WMYalliD Chrome Extension
+## MyWalliD Chrome Extension
 
 MyWalliD is a Chrome browser extension that enables users to interact with WalliD's protocol, platforms and APIs.
 The *src* folder contains all the code that describes the plugin's behaviour and functionalities. More specifically, the *scripts* folder contains all of the plugin's backend code. 
