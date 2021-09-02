@@ -17,6 +17,7 @@ export default {
       credential: 'credential',
       identity: 'identity',
       profile: 'online ID',
+      card: 'identity',
       text: [
         'Are you sure you want to delete <b> {0} </b>? ',
         'Once you delete this, you will not be able to revert this action.',
@@ -102,8 +103,12 @@ export default {
       title: 'Connection Request',
       description: ' is asking for permission to connect to wallet:',
       alert: 'Only connect with sites you fully trust.',
-      permissions:
-        'This website is requesting wallet permissions to:<br><br>- Access wallet address',
+      permissions: 'This website is requesting wallet permissions to:',
+      level: [
+        '',
+        '- Access wallet address<br>-Store identity assets',
+        '- Access wallet address<br>-Extract identities<br>-Encrypt and decrypt data<br>-Sign data using diferent signature types',
+      ],
       button: 'Connect',
       success: 'Successfully connected',
       successText: ' sucessfully conected with your wallet!',
@@ -325,14 +330,26 @@ export default {
   },
   create: {
     title: 'Welcome to MyWalliD',
-    text: 'The digital wallet for your credentials and identity documents',
-    button: 'Create MyWalliD',
+    text: 'The digital wallet for your ID assets',
+    button: 'Get started',
     import: [
       'Already have a MyWalliD wallet?',
       'Import now using the seed phrase',
     ],
 
     stepper: [
+      {},
+      {},
+      {
+        title: 'MyWalliD setup',
+        text:
+          'Create a new wallet or import an existing ethereum wallet address using it’s seedphrase.',
+        buttonCreate: 'Create a new MyWalliD wallet',
+        buttonImport: 'Import an existing ethereum wallet address',
+
+        terms: ['I have read and agree with', 'WalliD’s Terms and conditions'],
+        button: 'Set up password',
+      },
       {
         title: 'Set up your password',
         text:
