@@ -14,6 +14,9 @@ import CredentialsController from './controllers/credentials';
 import ProfilesController from './controllers/profiles';
 
 import ConfigurationsController from './controllers/configuration';
+
+import walletConnectController from './controllers/walletConnectController';
+
 import { setProvider } from './lib/eth-utils';
 
 const InitState = {
@@ -37,8 +40,51 @@ export default class AppController {
     const vault = new VaultController();
     vault.loadFromLocalStorage();
     this.#store.updateState({ vault });
+
+    // Initialize Wallet Connect controller
+    const walletConnect = new walletConnectController();
+
+    this.#store.updateState({ walletConnect });
   }
 
+  //=============================================================================
+  // WalletConnect Interface
+  //=============================================================================
+
+  /**
+   *
+   */
+  initFromURI(uri) {
+    const vault = this.#store.getState().vault;
+    const walletConnect = this.#store.getState().walletConnect;
+    const wallet = this.#store.getState().wallet;
+
+    if (!vault.isUnlocked()) {
+      return Promise.reject('ERR_PLUGIN_LOCKED');
+    }
+    return Promise.resolve(walletConnect.initFromURI(uri, wallet.getAddress()))
+      .then(() => eventPipeIn('wallid_wallet_connect_init'))
+      .then(() => wallet.getAddress());
+  }
+
+  /**
+   *
+   */
+  approveSession() {
+    const vault = this.#store.getState().vault;
+    const walletConnect = this.#store.getState().walletConnect;
+    const wallet = this.#store.getState().wallet;
+
+    if (!vault.isUnlocked()) {
+      return Promise.reject('ERR_PLUGIN_LOCKED');
+    }
+    return Promise.resolve(walletConnect.approveSession())
+      .then(({ url, icons, name }) =>
+        this.approveConnection(url, icons?.[0], name, 0)
+      )
+      .then(() => eventPipeIn('wallid_wallet_connect_approved'))
+      .then(() => wallet.getAddress());
+  }
   //=============================================================================
   // APP CONTROLLER INTERFACE
   //=============================================================================
@@ -71,6 +117,10 @@ export default class AppController {
     }
     let mnemonic = this.#store.getState().mnemonic;
     return Promise.resolve(seed.validate(test) && mnemonic == test);
+  }
+
+  isOnboardingComplete() {
+    return { initialized: !this.#store?.getState()?.vault?.isEmpty() };
   }
 
   //
@@ -145,10 +195,14 @@ export default class AppController {
           password,
         })
       )
-      .then(() =>
-        setProvider(this.#store.getState().configurations.getProvider())
-      )
-      .then(() => eventPipeIn('wallid_event_unlock'))
+      .then(() => {
+        setProvider(this.#store.getState().configurations.getProvider());
+        this.#store.getState().walletConnect.initFromSession();
+      })
+      .then(() => {
+        eventPipeIn('wallid_event_unlock');
+        return true;
+      })
       .catch((err) => {
         console.error(err);
         return Promise.reject('Wrong password');
@@ -199,6 +253,8 @@ export default class AppController {
     const connections = this.#store.getState().connections;
     const wallet = this.#store.getState().wallet;
 
+    console.log('approveConnection');
+
     if (!vault.isUnlocked()) {
       return Promise.reject('ERR_PLUGIN_LOCKED');
     }
@@ -227,12 +283,12 @@ export default class AppController {
     if (!vault.isUnlocked()) {
       return Promise.reject('ERR_PLUGIN_LOCKED');
     }
-    return Promise.resolve(connections.removeConnected(url)).then(
-      vault.putConnections(
+    return Promise.resolve(connections.removeConnected(url)).then(() => {
+      return vault.putConnections(
         connections.serialize(),
         this.#store.getState().password
-      )
-    );
+      );
+    });
   }
   /**
    *
@@ -669,7 +725,7 @@ export default class AppController {
   /**
    * Returns app controller's state.
    * Allows the UI access to the internal controller state.
-   * 
+   *
    * @returns {Object} uiState
    */
   getState() {
@@ -732,6 +788,9 @@ export default class AppController {
       eventProxy: this.eventProxy.bind(this),
 
       importSocialProfile: this.importSocialProfile.bind(this),
+
+      initFromURI: this.initFromURI.bind(this),
+      approveSession: this.approveSession.bind(this),
     };
   }
 
@@ -754,7 +813,10 @@ export default class AppController {
     }
     const connections = this.#store.getState().connections;
     return Promise.resolve(connections.getConnectionAccessLevel(origin)).then(
-      (al) => al >= level
+      (al) => {
+        console.log(al);
+        return al;
+      }
     );
   }
 
@@ -763,14 +825,92 @@ export default class AppController {
    * This method is called from within background.js.
    * Available methods and respective details are described in lib/requests.js.
    * Available fields for the method objects are defined in lib/requests.js.
-   * 
+   *
    * @param {string} method - name of the method to execute
-   * @param {Array} params - array containing the parameters 
+   * @param {Array} params - array containing the parameters
+   * @param string} origin - url of the caller web site
+   */
+  requestAPIv2(method, params = [], origin) {
+    const requestHandler = async function(details) {
+      let promise = {};
+      try {
+        if (details.args && params.length < details.args) {
+          return Promise.reject('WRONG_PARAMS');
+        }
+        // Check if has permission to handle request
+        const accessLevel = await this.accessControl(origin, details.level);
+
+        if (accessLevel < 0) {
+          return Promise.reject('ERR_NO_PERMISSION');
+        }
+
+        console.log('accessControl account: ', accessLevel);
+        if (details.main_controller && details.create) {
+          return this[details.executor[0]](...params);
+        }
+
+        console.log('request details: ', details);
+        console.log('request params: ', params);
+
+        // has permission, do request
+        if (accessLevel >= details.level && !details.popup) {
+          // Check if is to main_controller or for creating account
+          if (details.main_controller) {
+            promise = this[details.executor[0]](...params);
+          } else {
+            console.log('state request');
+            promise = Promise.resolve(
+              this.#store
+                .getState()
+                [details.executor[0]][details.executor[1]](...params)
+            );
+          }
+        } else {
+          // when no permission (or no wallet ???)
+          promise = new Promise((resolve, reject) => {
+            var _request = {
+              origin,
+              type: method,
+              data: params,
+              level: details.level,
+              callback: function(err, result) {
+                if (err) return reject(err);
+                else return resolve(result);
+              },
+            };
+            this.updatePendingRequests(_request);
+          });
+          launchNotificationPopup().then((id) => this.updateActivePopups(id));
+        }
+      } catch (error) {
+        console.log(error);
+      }
+      // promise to return
+      return promise;
+    };
+
+    return Promise.resolve(getRequestDetails(method)).then(
+      requestHandler.bind(this)
+    );
+  }
+
+  /**
+   * Exposes the extension's functionalities to web applications.
+   * This method is called from within background.js.
+   * Available methods and respective details are described in lib/requests.js.
+   * Available fields for the method objects are defined in lib/requests.js.
+   *
+   * @param {string} method - name of the method to execute
+   * @param {Array} params - array containing the parameters
    * @param string} origin - url of the caller web site
    */
   requestAPI(method, params = [], origin) {
     const requestHandler = function(details) {
       let promise = {};
+
+      if (details.args && params.length < details.args) {
+        return Promise.reject('WRONG_PARAMS');
+      }
       if (details.popup) {
         promise = new Promise((resolve, reject) => {
           var _request = {

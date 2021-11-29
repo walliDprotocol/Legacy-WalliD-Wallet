@@ -1,9 +1,9 @@
 /**
  * RequestAPI Method object fields:
- * 
+ *
  * -> level: the access level required in order to access and execute the method;
  * -> executor: an array with the execution path of the method: [<controller_module>, <controller_function>]
- * -> main_controller: flag indicating ig the method to execute is defined in the AppController. If the flag 
+ * -> main_controller: flag indicating ig the method to execute is defined in the AppController. If the flag
  * is present, the executor field will be an array containing only one element with the format [<app_controller_function>].
  * -> popup: flag indicating if a popup window should be presented to the user upon calling the method.
  */
@@ -18,11 +18,12 @@ const RequestAPIMethods = {
     level: 1,
     executor: ['connections', 'removeConnected'],
   },
-  wallid_token: {
-    main_controller: true,
-    level: 1,
-    executor: ['getAuthorizationToken'],
-  },
+  // Remove for v1.1
+  // wallid_token: {
+  //   main_controller: true,
+  //   level: 1,
+  //   executor: ['getAuthorizationToken'],
+  // },
   wallid_identities: {
     popup: false,
     level: 0,
@@ -38,11 +39,13 @@ const RequestAPIMethods = {
     main_controller: true,
     level: 1,
     executor: ['importIdentity_v2'],
+    args: 5,
   },
   wallid_import_cred: {
     main_controller: true,
     level: 1,
     executor: ['importCredential'],
+    args: 8,
   },
   wallid_export_cred: {
     main_controller: true,
@@ -53,12 +56,14 @@ const RequestAPIMethods = {
     main_controller: true,
     level: 1,
     executor: ['importCredentialSign'],
+    args: 3,
   },
 
   wallid_import_social_profile: {
     main_controller: true,
     level: 1,
     executor: ['importSocialProfile'],
+    args: 4,
   },
   wallid_set_provider: {
     level: 1,
@@ -119,7 +124,7 @@ const RequestAPIMethods = {
     main_controller: true,
     create: true,
     level: 0,
-    executor: ['getState'],
+    executor: ['isOnboardingComplete'],
   },
 };
 
