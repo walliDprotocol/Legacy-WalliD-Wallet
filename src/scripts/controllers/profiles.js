@@ -77,12 +77,28 @@ export default class ProfilesController {
       return resolve(this.#profiles[index]);
     });
   }
-
+  exportAsset(id) {
+    return new Promise((resolve, reject) => {
+      console.log('log id get', id);
+      const index = this.#profiles.findIndex((profile) => profile.id == id);
+      if (index == -1) {
+        console.log('ALREADY EXISTs', index);
+        return reject(`ERR_PROFILE_INEXISTENT`);
+      }
+      return resolve(this.#profiles[index]);
+    });
+  }
   get() {
     return this.#profiles;
   }
 
   getList() {
-    return this.#profiles.map((id) => id.id);
+    return this.#profiles.map((id) => {
+      return {
+        id: id.id,
+        socialName: id.socialName,
+        username: id.username,
+      };
+    });
   }
 }
