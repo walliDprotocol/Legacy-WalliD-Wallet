@@ -1,8 +1,13 @@
-## MyWalliD browser Extension
+## MyWalliD wallet
 
-MyWalliD is a Chrome browser extension that enables users to interact with WalliD's protocol, platforms and APIs.
+MyWalliD is an Ethereum-based digital wallet that enables users to authenticate on the web2, web3, self-sovereignly store ID assets in the browser local memory and provide a proof-of-ID over those assets in dApps or webapps. It allows it's users to create or manage an Ethereum wallet (address, public and private keys) through a javascript enabled browser extension. 
+
 The *src* folder contains all the code that describes the plugin's behaviour and functionalities. More specifically, the *scripts* folder contains all of the plugin's backend code. 
 Detailed information about the *scripts* folder can be found bellow.
+
+###note for NFT HACK2022:
+
+The ENS resolver integration with MyWalliD wallet will can monitored on the folrer /
 ___
 
 ### /src/scripts:
