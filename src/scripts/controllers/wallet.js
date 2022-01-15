@@ -9,7 +9,7 @@ import * as eth from '../lib/eth-utils';
  *  WalletController
  *
  *  Class is wrapper for ethereumjs-wallet.
- *  Exposes operations related to the wallet, namely cryptographic operations 
+ *  Exposes operations related to the wallet, namely cryptographic operations
  * using the wallet's private key.
  *  Adds cryptographic capabilities to Wallet:
  *    -> Sign Ethereum Transactions
@@ -42,11 +42,11 @@ export default class WalletController {
     return new WalletController(Wallet.fromPrivateKey(pk));
   }
   static initFromMnemonic(mnemonic) {
-    const seed = bip39.mnemonicToSeedSync(mnemonic)
+    const seed = bip39.mnemonicToSeedSync(mnemonic);
     const hdwallet = hdkey.fromMasterSeed(seed);
     const root = hdwallet.derivePath(this.HDPath);
     const firstChild = root.deriveChild(0);
-	return new WalletController(firstChild.getWallet());
+    return new WalletController(firstChild.getWallet());
   }
 
   // Returns
