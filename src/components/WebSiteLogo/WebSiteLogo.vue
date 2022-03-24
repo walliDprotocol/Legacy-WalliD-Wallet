@@ -1,7 +1,14 @@
 <template>
   <v-container class="pa-0 text-center website-logo">
-    <div id="website-logo-request">
-      <img width="62" :src="url" />
+    <div
+      id="website-logo-request"
+      :style="{
+        width: size + 'px',
+        height: size + 'px',
+        backgroundImage: `url(${imageURL})`,
+      }"
+    >
+      <!-- <img :src="url" /> -->
     </div>
     <div class="website-logo--name">
       <p class="FIELD-TEXT">{{ name }}</p>
@@ -11,7 +18,7 @@
 
 <script>
 export default {
-  props: ['url', 'name'],
+  props: ['imageURL', 'name', 'size'],
 };
 </script>
 
@@ -19,8 +26,6 @@ export default {
 .website-logo {
   // margin-right: -22px;
   #website-logo-request {
-    height: 72px;
-    max-width: 72px;
     border-radius: 50%;
     border: solid 2px #b8b9bb;
     margin: auto;
@@ -28,6 +33,9 @@ export default {
 
     display: flex;
     align-items: center;
+
+    background-size: contain;
+    background-position: center;
     .connected & {
       border: solid 2px var(--turquoise-green);
     }
@@ -42,11 +50,6 @@ export default {
       height: 24px;
       max-width: 116px;
     }
-  }
-  img {
-    margin: 4px auto;
-    // height: auto;
-    // border-radius: 50%;
   }
 }
 </style>

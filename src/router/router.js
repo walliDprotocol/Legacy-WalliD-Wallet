@@ -82,6 +82,7 @@ let router = new Router({
           path: '/sites',
           name: 'sites',
           component: Sites,
+          props: (route) => ({ ...route.query, ...route.params }),
         },
         {
           path: '/settings',
@@ -169,7 +170,7 @@ router.beforeEach((to, from, next) => {
 
   debug('isUnlocked', isUnlocked);
 
-  if (to.path == '/popup.html') {
+  if (to.path == '/popup.html' || to.path == '/home') {
     const identities = store.getters.identities || [];
     const credentials = store.getters.credentials || [];
     const profiles = store.getters.profiles || [];
@@ -188,10 +189,12 @@ router.beforeEach((to, from, next) => {
     }
   }
 
+  // whitelisted pages
   if (
     to.path == '/login' ||
     to.path == '/create' ||
     to.path == '/restore' ||
+    to.path == '/sites' ||
     to.path == '/import'
   ) {
     debug('Login/Create/Restore Path');

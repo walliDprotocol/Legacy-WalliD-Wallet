@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import {
+  ADDRESS,
   IMPORT,
   REFRESH_STATE,
   LOCK_WALLET,
@@ -13,6 +14,7 @@ import {
   DECRYPT,
   DISCONNECT,
   ACCESS_LEVEL,
+  GET_ACCESS_LEVEL,
   GET_TOKEN,
   REVEAL_SEED_PHRASE,
   REVEAL_PRIV_KEY,
@@ -30,6 +32,15 @@ import {
   DELETE_PROFILE,
   DELETE_CARD,
   EXTRACT,
+
+  // NEW
+  PERMISSION_LEVEL,
+  // plugin requests
+  WALLID_LIST,
+  WALLID_IMPORT_SOCIAL_PROFILE,
+  WALLID_VERIFY,
+  WALLID_EXPORT,
+  WALLID_IMPORT_ASSET,
 } from './actions';
 
 import * as modules from './modules';
@@ -65,7 +76,7 @@ export default new Vuex.Store({
   },
   getters: {
     showDeleteConfirmation: (state) => state.showDeleteConfirmation,
-    address: (state) => state.domainENS || state.address,
+    address: (state) => state.address,
     completedOnboarding: (state) => state.completedOnboarding,
     connections: (state) => state.connections,
     connected: (state) => state.connected,
@@ -119,7 +130,15 @@ export default new Vuex.Store({
 
     [ACCESS_LEVEL]: ({ commit, state }, { url, level }) => {
       return new Promise((resolve, reject) => {
+        console.log('url:', url, 'level', level);
         API.accessControl(url, level).then((res) => {
+          resolve(res);
+        });
+      });
+    },
+    [GET_ACCESS_LEVEL]: ({ commit, state }, { url }) => {
+      return new Promise((resolve, reject) => {
+        API.getAccessLevel(url).then((res) => {
           resolve(res);
         });
       });
@@ -216,16 +235,17 @@ export default new Vuex.Store({
     // Request level is forced at level 2, this will change for next major
     // plugin version has it will be the user choosing the permission level
     //
-    [CONNECT]: ({ commit, state }, { origin, name, level = 2 }) => {
+    [CONNECT]: ({ commit, state }, { origin, name, level = 1, options }) => {
       return new Promise((resolve, reject) => {
         console.log('Action CONNECT');
         state.debug('URL: ', origin);
         state.debug('level: ', level);
+        state.debug('options: ', options);
 
         state.debug('Connections: ', state.connections);
         // state.debug("Notification: ", state.notification);
         let icon = origin + '/favicon.ico';
-        API.approveConnection(origin, icon, name, level)
+        API.approveConnection(origin, icon, name, level, options)
           .then((res) => {
             resolve(res);
           })
@@ -270,20 +290,6 @@ export default new Vuex.Store({
         console.log('Action DELETE_CARD');
         state.debug('Data: ', idt);
         API.deleteIdentity(idt)
-          .then((res) => {
-            resolve(res);
-          })
-          .catch((e) => {
-            console.error(e);
-            reject(e);
-          });
-      });
-    },
-    [ENCRYPT]: ({ commit, state }, { data }) => {
-      return new Promise((resolve, reject) => {
-        console.log('Action ENCRYPT');
-        state.debug('Data: ', data);
-        API.encryptData(data)
           .then((res) => {
             resolve(res);
           })
@@ -397,14 +403,12 @@ export default new Vuex.Store({
           });
       });
     },
-    [IMPORT]: ({ commit, state }, { idt, data, ow = true, expDate }) => {
+    [IMPORT]: ({ commit, state }, data) => {
       return new Promise((resolve, reject) => {
         console.log('Action IMPORT');
-        state.debug('idt: ', idt);
         state.debug('Data: ', data);
-        state.debug('ow: ', ow);
 
-        API.importIdentity_v2(idt, data, ow, expDate)
+        API.importIdentity_v2(...data)
           .then((res) => {
             resolve(res);
           })
@@ -414,10 +418,25 @@ export default new Vuex.Store({
           });
       });
     },
-    [DECRYPT]: ({ commit, state }, { data }) => {
+    [ENCRYPT]: ({ commit, state }, data) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action ENCRYPT');
+        state.debug('Data: ', data);
+        API.encryptData(...data)
+          .then((res) => {
+            resolve(res);
+          })
+          .catch((e) => {
+            console.error(e);
+            reject(e);
+          });
+      });
+    },
+    [DECRYPT]: ({ commit, state }, data) => {
       return new Promise((resolve, reject) => {
         console.log('Action DECRYPT');
-        API.decryptData(data)
+        state.debug('Data: ', data);
+        API.decryptData(...data)
           .then((res) => {
             resolve(res);
           })
@@ -431,7 +450,7 @@ export default new Vuex.Store({
       return new Promise((resolve, reject) => {
         console.log('Action SIGN_EC');
         state.debug('Data: ', data);
-        API.generateECSignature(data)
+        API.generateECSignature(...data)
           .then((res) => {
             console.log(res);
             resolve(res);
@@ -462,7 +481,7 @@ export default new Vuex.Store({
       return new Promise((resolve, reject) => {
         console.log('Action SIGN');
         state.debug('Data: ', data);
-        API.signPrivateKey(data)
+        API.signPrivateKey(...data)
           .then((res) => {
             console.log(res);
             resolve(res);
@@ -487,6 +506,84 @@ export default new Vuex.Store({
             console.error(e);
             reject(e);
           });
+      });
+    },
+    [ADDRESS]: ({ state, commit, dispatch }) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action ADDRESS');
+        try {
+          resolve(API.getState().address);
+        } catch (error) {
+          reject(error);
+        }
+      });
+    },
+    [WALLID_LIST]: ({ state, commit, dispatch }, params) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action WALLID_LIST');
+        console.log('Params: ', params);
+
+        try {
+          if (!params?.[Symbol.iterator]) reject('INVALID_ARGUMENTS');
+          resolve(API.getList(...params));
+        } catch (error) {
+          console.error(error.message);
+          reject(error.message);
+        }
+      });
+    },
+    [WALLID_IMPORT_SOCIAL_PROFILE]: ({ state, commit, dispatch }, params) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action WALLID_IMPORT_SOCIAL_PROFILE');
+        console.log('Params: ', params);
+
+        try {
+          resolve(API.importSocialProfile(...params));
+        } catch (error) {
+          console.error(error.message);
+          reject(error.message);
+        }
+      });
+    },
+    [WALLID_VERIFY]: ({ state, commit, dispatch }, params) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action WALLID_VERIFY');
+        console.log('Params: ', params);
+
+        try {
+          resolve(API.verifyEthereumSignedMessage(...params));
+        } catch (error) {
+          console.error(error.message);
+          reject(error.message);
+        }
+      });
+    },
+
+    [WALLID_EXPORT]: ({ state, commit, dispatch }, params) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action WALLID_EXPORT');
+        console.log('Params: ', params);
+
+        try {
+          resolve(API.exportAsset(...params));
+        } catch (error) {
+          console.error(error);
+          reject(error.message);
+        }
+      });
+    },
+
+    [WALLID_IMPORT_ASSET]: ({ state, commit, dispatch }, params) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action WALLID_IMPORT_ASSET');
+        console.log('Params: ', params);
+
+        try {
+          resolve(API.importAsset(...params));
+        } catch (error) {
+          console.error(error);
+          reject(error.message);
+        }
       });
     },
 
@@ -538,14 +635,14 @@ export default new Vuex.Store({
             break;
 
           case 'wallet_encrypt':
-            dispatch(ENCRYPT, { data }).then((res) => {
+            dispatch(ENCRYPT, data).then((res) => {
               console.log(res);
               resolve(callback(null, res));
             });
             break;
 
           case 'wallet_decrypt':
-            dispatch(DECRYPT, { data }).then((res) => {
+            dispatch(DECRYPT, data).then((res) => {
               let _res = JSON.parse(res);
               resolve(callback(null, _res));
             });
@@ -562,11 +659,7 @@ export default new Vuex.Store({
               .catch(() => resolve(callback('REJECTED')));
             break;
           case 'wallid_import':
-            dispatch(IMPORT, {
-              idt: data.idt,
-              data: data.data,
-              expDate: data.expDate,
-            })
+            dispatch(IMPORT, data)
               .then((res) => {
                 console.log('res import:', res);
                 resolve(callback(null, true));
@@ -600,8 +693,30 @@ export default new Vuex.Store({
 
             break;
 
+          case ADDRESS:
+            dispatch(ADDRESS, { idt: data[0] })
+              .then((res) => {
+                console.log('res ADDRESS:', res);
+                resolve(callback(null, res));
+              })
+              .catch(() => resolve(callback('REJECTED')));
+
+            break;
+          case 'wallid_open':
+            resolve(true);
+            break;
+
           default:
-            resolve(callback(null, true));
+            dispatch(type, data)
+              .then((res) => {
+                console.log(`res ${type} : `, res);
+                resolve(callback(null, res));
+              })
+              .catch((error) => {
+                console.log(error);
+                resolve(callback(error));
+              });
+            // reject(callback(null, 'ERR_NOT_IMPLEMENTED'));
 
             break;
         }
@@ -661,6 +776,17 @@ export default new Vuex.Store({
             reject('Wrong password');
           }
         });
+      });
+    },
+
+    [PERMISSION_LEVEL]: ({ commit, dispatch }, { url, level }) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action PERMISSION_LEVEL');
+        API.changePermissionLevel(url, level)
+          .then(() => resolve(dispatch(REFRESH_STATE)))
+          .catch((e) => {
+            reject(e);
+          });
       });
     },
     [LOCK_WALLET]: ({ commit, dispatch }) => {

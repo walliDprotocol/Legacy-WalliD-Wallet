@@ -15,6 +15,7 @@ export default {
     delete: {
       title: 'Delete',
       credential: 'credential',
+      web3Id: 'web3 ID',
       identity: 'identity',
       profile: 'online ID',
       card: 'identity',
@@ -99,24 +100,47 @@ export default {
     ],
   },
   request: {
+    description: ' is requesting permissions to:',
+    currentLevel: 'Current permissions level:',
+    edit: 'Edit',
     wallid_connect: {
       title: 'Connection Request',
-      description: ' is asking for permission to connect to wallet:',
+      description: ' is asking for permission to connect to MyWalliD:',
       alert: 'Only connect with sites you fully trust.',
-      permissions: 'This website is requesting wallet permissions to:',
-      level: [
-        '',
-        '- Access wallet address<br>-Store identity assets',
-        '- Access wallet address<br>-Extract identities<br>-Encrypt and decrypt data<br>-Sign data using diferent signature types',
+      permissions:
+        'Select one of the following permission levels you want to give to this site:',
+      levels: [
+        {
+          level: 1,
+          label: '<b>Level 1 </b> - Safe mode',
+          tooltip:
+            'Every signature and usage of keys within the Dapp will require your authorisation signature through a confirm button.',
+        },
+        {
+          level: 2,
+          label: '<b>Level 2 </b> - Friendly mode',
+          tooltip:
+            'Only connecting to Dapps and operations that require the extraction and usage of Identity assets will require authorised signatures through a confirm button.',
+        },
+        {
+          level: 3,
+          label: '<b>Level 3 </b> - Gung ho mode',
+          tooltip:
+            "Wallet extension won't be called in order to request authorisation signatures for mostly anything. Keys' usage will be triggered from Dapps frontend.",
+        },
       ],
       button: 'Connect',
       success: 'Successfully connected',
       successText: ' sucessfully conected with your wallet!',
     },
+    wallet_address: {
+      title: 'Authorisation Request',
+      description: 'Access wallet address',
+      button: 'Authorise',
+    },
     wallet_encrypt: {
       title: 'Authorisation Request',
-      description:
-        ' is requesting authorisation to store this identity document in wallet:',
+      description: 'Encrypt Identity asset data',
       button: 'Authorise',
     },
     wallet_decrypt: {
@@ -138,9 +162,10 @@ export default {
       button: 'Store',
     },
     wallet_sign: {
-      title: 'Sign Request',
+      title: 'Signature request',
       description:
         ' is requesting your authorisation to sign the Certificate data with you private key',
+      label: ['You are signing:', 'Message:'],
       button: 'Sign',
     },
     wallet_ec_sign: {
@@ -155,6 +180,21 @@ export default {
         ' is requesting confirmation for this action with your wallet on WalliD platform',
       button: 'Confirm',
     },
+    wallid_list: {
+      title: 'Authorisation Request',
+      description: 'Access a list of stored assets',
+      button: 'Authorise',
+    },
+    wallid_export_asset: {
+      title: 'Authorisation Request',
+      description: 'Get ID asset',
+      button: 'Authorise',
+    },
+    wallid_import_asset: {
+      title: 'Authorisation Request',
+      description: 'Store ID assets in your wallet',
+      button: 'Authorise',
+    },
     bScenes: "Know what's happening behind the scenes",
     cancel: 'Cancel',
   },
@@ -164,7 +204,7 @@ export default {
     version: 'Version',
     links: [
       'Links',
-      'FAQ’s',
+      "FAQ's",
       'Terms and conditions',
       'Privacy Policy',
       'Contact us',
@@ -217,11 +257,14 @@ export default {
     disconnect: ['Disconnect ', ' site'],
     confirm:
       'Are you sure you want to disconnect? <br> You may lose site funcionality.',
+    details: {
+      title: 'Edit permissions details',
+    },
     button: ['Cancel', 'Disconnect'],
   },
   menu: {
     title: 'MyWalliD',
-    details: 'Wallet details ',
+    details: 'MyWalliD details ',
     sites: 'Connected sites',
     settings: 'Settings',
     about: 'About',
@@ -256,14 +299,19 @@ export default {
 
   credentials: {
     noCredentials:
-      'Seems like you don’t have any credentials stored in your wallet yet.',
-    store: 'Start issuing credentials now',
-    menu: [
+      'Seems like you don’t have Web3 IDs stored in your wallet yet.',
+    store: 'Store your Web3 ID now',
+
+    menuCredential: [
       'Credential info',
       'Share credential',
       'Download Credential',
       'Delete Credential',
     ],
+    menuENS: ['Check etherscan'],
+    menuMetaMask: ['Share proof of identity', 'Delete identity'],
+    addNew: 'Add another Web3 ID',
+
     status: {
       active: 'Valid',
       revoke: 'Revoked',
@@ -397,6 +445,7 @@ export default {
     cancel: 'Cancel',
     confirm: 'Confirm',
     connect: 'Connect',
+    approve: 'Approve',
     disconnect: 'Disconnect',
     done: 'Done',
   },

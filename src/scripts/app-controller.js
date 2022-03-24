@@ -47,7 +47,7 @@ export default class AppController {
     this.#store.updateState({ vault });
 
     // Initialize Wallet Connect controller
-    const walletConnect = new walletConnectController();
+    const walletConnect = walletConnectController;
 
     this.#store.updateState({ walletConnect });
   }
@@ -67,15 +67,17 @@ export default class AppController {
     if (!vault.isUnlocked()) {
       return Promise.reject('ERR_PLUGIN_LOCKED');
     }
-    return Promise.resolve(walletConnect.initFromURI(uri, wallet.getAddress()))
-      .then(() => eventPipeIn('wallid_wallet_connect_init'))
-      .then(() => wallet.getAddress());
+    return (
+      Promise.resolve(walletConnect.initFromURI(uri, wallet.getAddress()))
+        // .then(() => eventPipeIn('wallid_wallet_connect_init'))
+        .then((peerId) => peerId)
+    );
   }
 
   /**
    *
    */
-  approveSession() {
+  approveSession(peerId) {
     const vault = this.#store.getState().vault;
     const walletConnect = this.#store.getState().walletConnect;
     const wallet = this.#store.getState().wallet;
@@ -83,9 +85,11 @@ export default class AppController {
     if (!vault.isUnlocked()) {
       return Promise.reject('ERR_PLUGIN_LOCKED');
     }
-    return Promise.resolve(walletConnect.approveSession())
+    return Promise.resolve(walletConnect.approveSession(peerId))
       .then(({ url, icons, name }) =>
-        this.approveConnection(url, icons?.[0], name, 0)
+        this.approveConnection(url, icons?.[0], name, 0, {
+          walletConnect: true,
+        })
       )
       .then(() => eventPipeIn('wallid_wallet_connect_approved'))
       .then(() => wallet.getAddress());
@@ -125,7 +129,10 @@ export default class AppController {
   }
 
   isOnboardingComplete() {
-    return { initialized: !this.#store?.getState()?.vault?.isEmpty() };
+    return {
+      initialized: !this.#store?.getState()?.vault?.isEmpty(),
+      unlocked: this.#store?.getState()?.vault?.isUnlocked(),
+    };
   }
 
   //
@@ -202,9 +209,14 @@ export default class AppController {
       )
       .then(() => {
         setProvider(this.#store.getState().configurations.getProvider());
-        this.#store.getState().walletConnect.initFromSession();
+        // initiate wallet connect
+        return this.#store.getState().walletConnect.init();
+      })
+
+      .then(() => {
         return this.setENSData(this.#store.getState().wallet.getAddress());
       })
+
       .then(() => {
         eventPipeIn('wallid_event_unlock');
         return true;
@@ -269,7 +281,7 @@ export default class AppController {
    *
    * @returns {Promise} - result
    */
-  approveConnection(url, icon, name, level = 1) {
+  approveConnection(url, icon, name, level = 1, options) {
     const vault = this.#store.getState().vault;
     const connections = this.#store.getState().connections;
     const wallet = this.#store.getState().wallet;
@@ -279,15 +291,42 @@ export default class AppController {
     if (!vault.isUnlocked()) {
       return Promise.reject('ERR_PLUGIN_LOCKED');
     }
-    return Promise.resolve(connections.addConnected(url, icon, name, level))
+    return Promise.resolve(
+      connections.addConnected(url, icon, name, level, options)
+    )
       .then(
         vault.putConnections(
           connections.serialize(),
           this.#store.getState().password
         )
       )
-      .then(() => eventPipeIn('wallid_wallet_connected'))
-      .then(() => wallet.getAddress());
+      .then(() => eventPipeIn('wallid_wallet_connected'));
+  }
+
+  /**
+   * Approves a pending connection request.
+   * Promise rejects if a connection with same @url already exists, or if vault is locked.
+   *
+   * @param {string} url - Identifier of the pendding connection
+   *
+   * @returns {Promise} - result
+   */
+  changePermissionLevel(url, level) {
+    const vault = this.#store.getState().vault;
+    const connections = this.#store.getState().connections;
+    const wallet = this.#store.getState().wallet;
+
+    console.log('changePermissionLevel');
+
+    if (!vault.isUnlocked()) {
+      return Promise.reject('ERR_PLUGIN_LOCKED');
+    }
+    return Promise.resolve(connections.changePermissionLevel(url, level)).then(
+      vault.putConnections(
+        connections.serialize(),
+        this.#store.getState().password
+      )
+    );
   }
 
   /**
@@ -342,7 +381,7 @@ export default class AppController {
     if (!vault.isUnlocked()) {
       return Promise.reject('ERR_PLUGIN_LOCKED');
     }
-    return wallet.signEthereumMessage(JSON.stringify(data));
+    return wallet.signEthereumMessage(data);
   }
 
   /**
@@ -412,6 +451,23 @@ export default class AppController {
     }
     return wallet.signECMessage(data);
   }
+  /**
+   * verifies a signed message
+   *
+   * @param {string} message - original message
+   * @param {string} signature - signed message to verify
+   *
+   * @returns {Boolean} if the recovered wallet address matches the user wallet address
+   */
+  verifyEthereumSignedMessage(message, signature) {
+    const vault = this.#store.getState().vault;
+    const wallet = this.#store.getState().wallet;
+    if (!vault.isUnlocked()) {
+      return Promise.reject('ERR_PLUGIN_LOCKED');
+    }
+
+    return wallet.verifyEthereumSignedMessage(message, signature);
+  }
   //
   // WALLID RELATED METHODS
   //
@@ -463,7 +519,6 @@ export default class AppController {
     if (!vault.isUnlocked()) {
       return Promise.reject('ERR_PLUGIN_LOCKED');
     }
-
     try {
       const listController = this.#store.getState()[type];
       if (!listController) return Promise.reject('NOT_IMPLEMENTED: ' + type);
@@ -473,6 +528,41 @@ export default class AppController {
       console.error(error);
     }
   }
+
+  importAsset(assetData) {
+    console.log('importAsset for: ', assetData);
+    const vault = this.#store.getState().vault;
+    if (!vault.isUnlocked()) {
+      return Promise.reject('ERR_PLUGIN_LOCKED');
+    }
+    try {
+      if (Array.isArray(assetData)) {
+        var promises = [];
+        assetData.forEach((asset) => promises.push(this.importAsset(asset)));
+        return Promise.all(promises);
+      }
+      const listController = this.#store.getState()[
+        assetData?.pluginController
+      ];
+      if (!listController)
+        return Promise.reject(
+          'NOT_IMPLEMENTED: ' + assetData?.pluginController
+        );
+      return listController
+        .importAsset(assetData?.uniqueId, assetData)
+        .then(({ vaultName }) => {
+          console.log(vaultName);
+          return vault[vaultName](
+            listController.serialize(),
+            this.#store.getState().password
+          );
+        })
+        .catch((error) => Promise.reject(error));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   /**
    * Returns WalliD authorization token ready for use with WalliD API.
    * Rejects with HTTP status code from server if request fail.
@@ -860,6 +950,7 @@ export default class AppController {
       exportCredential: this.exportCredential.bind(this),
       getNextRequest: this.getNextRequest.bind(this),
       accessControl: this.accessControl.bind(this),
+      getAccessLevel: this.getAccessLevel.bind(this),
       currentTab: this.currentTab.bind(this),
       generateERC191Signature: this.generateERC191Signature.bind(this),
       generateECSignature: this.generateECSignature.bind(this),
@@ -875,7 +966,13 @@ export default class AppController {
       initFromURI: this.initFromURI.bind(this),
       approveSession: this.approveSession.bind(this),
 
+      // New methods for v.1.1
+      // listIdentities: this.listIdentities.bind(this),
       getList: this.getList.bind(this),
+      changePermissionLevel: this.changePermissionLevel.bind(this),
+      importAsset: this.importAsset.bind(this),
+      verifyEthereumSignedMessage: this.verifyEthereumSignedMessage.bind(this),
+      exportAsset: this.exportAsset.bind(this),
     };
   }
 
@@ -894,14 +991,34 @@ export default class AppController {
   accessControl(origin, level) {
     const vault = this.#store.getState().vault;
     if (!vault.isUnlocked()) {
-      return undefined;
+      return true;
     }
     const connections = this.#store.getState().connections;
     return Promise.resolve(connections.getConnectionAccessLevel(origin)).then(
-      (al) => {
-        console.log(al);
-        return al >= level;
-      }
+      (al) => al >= level //old version
+      // (al) => {
+      //   console.log(al);
+      //   return al;
+      // }
+    );
+  }
+
+  /**
+   * Resolves to a bool indicating if @origin has access level @level .
+   *
+   * @param {string} origin - url of the caller web site
+   * @param {Number} level - request access level
+   *
+   * @returns {Promise<boolean>} - has access bool
+   */
+  getAccessLevel(origin) {
+    const vault = this.#store.getState().vault;
+    if (!vault.isUnlocked()) {
+      return true;
+    }
+    const connections = this.#store.getState().connections;
+    return Promise.resolve(connections.getConnectionAccessLevel(origin)).then(
+      (al) => al
     );
   }
 
@@ -915,35 +1032,62 @@ export default class AppController {
    * @param {Array} params - array containing the parameters
    * @param string} origin - url of the caller web site
    */
-  requestAPIv2(method, params = [], origin) {
+  requestAPI(method, params = [], origin) {
     const requestHandler = async function(details) {
       let promise = {};
+      console.log('request method: ', method);
+      console.log('request details: ', details);
+      console.log('request params: ', params);
+      console.log('request origin: ', origin);
+
+      // Check if has permission to handle request
+
       try {
+        const accessLevel = await this.getAccessLevel(origin);
+        console.log('getAccessLevel account: ', accessLevel);
+        const hasAccessLevel = await this.accessControl(origin, details.level);
+
         if (details.args && params.length < details.args) {
           return Promise.reject('WRONG_PARAMS');
         }
-        // Check if has permission to handle request
-        const accessLevel = await this.accessControl(origin, details.level);
 
-        if (accessLevel < 0) {
-          return Promise.reject('ERR_NO_PERMISSION');
-        }
-
-        console.log('accessControl account: ', accessLevel);
         if (details.main_controller && details.create) {
           return this[details.executor[0]](...params);
         }
 
-        console.log('request details: ', details);
-        console.log('request params: ', params);
+        const vault = this.#store.getState().vault;
+        if (!vault.isUnlocked() && method !== 'wallid_connect') {
+          return Promise.reject('ERR_PLUGIN_LOCKED');
+        }
 
+        if (-1 == accessLevel && method !== 'wallid_connect') {
+          return Promise.reject('ERR_NO_PERMISSION');
+        }
+
+        // This shouldnt be here, maybe there is a better way to handle connected
+
+        if (
+          accessLevel > -1 &&
+          method == 'wallid_connect' &&
+          vault.isUnlocked()
+        ) {
+          console.log('Already connect');
+          return Promise.resolve({msg:'ALREADY_CONNECTED', level: accessLevel});
+        }
         // has permission, do request
-        if (accessLevel >= details.level && !details.popup) {
+
+        if (hasAccessLevel && !details.popup) {
           // Check if is to main_controller or for creating account
           if (details.main_controller) {
-            promise = this[details.executor[0]](...params);
+            // use origin to disconnect calling website
+            if (method == 'wallid_disconnect') {
+              promise = this[details.executor[0]](origin);
+            } else {
+              promise = this[details.executor[0]](...params);
+            }
           } else {
             console.log('state request');
+
             promise = Promise.resolve(
               this.#store
                 .getState()
@@ -951,7 +1095,7 @@ export default class AppController {
             );
           }
         } else {
-          // when no permission (or no wallet ???)
+          // when no permission (or no wallet ??? or wallet locked ???)
           promise = new Promise((resolve, reject) => {
             var _request = {
               origin,
@@ -971,6 +1115,7 @@ export default class AppController {
         console.log(error);
       }
       // promise to return
+      console.log(promise);
       return promise;
     };
 
@@ -979,17 +1124,7 @@ export default class AppController {
     );
   }
 
-  /**
-   * Exposes the extension's functionalities to web applications.
-   * This method is called from within background.js.
-   * Available methods and respective details are described in lib/requests.js.
-   * Available fields for the method objects are defined in lib/requests.js.
-   *
-   * @param {string} method - name of the method to execute
-   * @param {Array} params - array containing the parameters
-   * @param string} origin - url of the caller web site
-   */
-  requestAPI(method, params = [], origin) {
+  OldrequestAPI(method, params = [], origin) {
     const requestHandler = function(details) {
       let promise = {};
 

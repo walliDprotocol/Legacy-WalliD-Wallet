@@ -95,6 +95,34 @@ export default class CredentialsController {
     });
   }
 
+  importAsset(id, assetData, expDate, ow = true) {
+    return new Promise((resolve, reject) => {
+      console.log('log id add', id);
+      console.log('credentials', this.#credentials);
+      const index = this.#credentials.findIndex((cred) => cred.id == id);
+      console.log('index', index);
+      if (index != -1 && ow) {
+        console.log('ALREADY EXISTs w/ OW', index);
+        this.#credentials.splice(index, 1);
+      } else if (index != -1) {
+        console.log('ALREADY EXISTs', index);
+        return reject(`ERR_CRED_ALREADY_EXISTS`);
+      }
+      this.#credentials.push({
+        id,
+        ...assetData,
+        expDate,
+      });
+
+      return resolve({
+        id,
+        ...assetData,
+        expDate,
+        vaultName: 'putCredentials',
+      });
+    });
+  }
+
   getCredential(id) {
     return new Promise((resolve, reject) => {
       console.log('log id get', id);
@@ -126,6 +154,12 @@ export default class CredentialsController {
     return this.#credentials.map((id) => id.id);
   }
   getList() {
-    return this.#credentials.map((id) => id.id);
+    return this.#credentials.map((id) => {
+      return {
+        id: id.id,
+        assetName: id.assetName,
+        username: id.username,
+      };
+    });
   }
 }

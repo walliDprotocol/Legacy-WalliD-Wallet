@@ -34,22 +34,44 @@ export default class ConnectionsController {
     return new ConnectionsController(conns);
   }
 
-  addConnected(url, icon, name, level) {
+  addConnected(url, icon, name, level, options) {
     return new Promise((resolve, reject) => {
-      if (level < 1 && level > 2) return reject('ERR_INV_ACCESS_LEVEL');
+      if (level < 1 || level > 3) return reject('ERR_INV_ACCESS_LEVEL');
       if (this.#connections.findIndex((c) => c.url == url) != -1) {
         return reject(`ERR_CONN_ALREADY_EXISTS`);
       }
-      this.#connections.push({ url, icon, name, level });
+      console.log(options);
+      this.#connections.push({ url, icon, name, level, ...options });
       return resolve();
     });
   }
 
+  changePermissionLevel(url, level) {
+    return new Promise((resolve, reject) => {
+      console.log(url, level);
+      if (level < 1 || level > 3) return reject('ERR_INV_ACCESS_LEVEL');
+      let index = this.#connections.findIndex((c) => c.url == url);
+
+      if (index != -1) {
+        this.#connections[index].level = level;
+        return resolve(true);
+      }
+      return reject(`ERR_CONN_NOT_FOUND`);
+    });
+  }
+
   removeConnected(url) {
+    console.log(url);
     return Promise.resolve(
       this.#connections.findIndex((c) => c.url == url)
     ).then((index) => {
-      if (index != -1) this.#connections.splice(index, 1);
+      console.log(index);
+      if (index != -1) {
+        this.#connections.splice(index, 1);
+        Promise.resolve(`DISCONNECTED(${url})`);
+      } else {
+        return Promise.reject(`ERR_CONN_NOT_FOUND`);
+      }
     });
   }
 

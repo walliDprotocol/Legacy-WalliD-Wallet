@@ -5,65 +5,207 @@
         height="50"
         max-width="50"
         contain
-        src="../images/logo-header-wallid.png"
+        src="../images/logos/logo-wallid.png"
       />
       <h1 v-if="!success" class="T2 ml-5">
-        {{ $t('request.' + type + '.title') }}
+        {{ $t('request.' + requestType + '.title') }}
       </h1>
-      <h1 v-else class="T2 ml-5">{{ $t('request.' + type + '.success') }}</h1>
+      <h1 v-else class="T2 ml-5">
+        {{ $t('request.' + requestType + '.success') }}
+      </h1>
 
       <div class="arrow-down-header"></div>
-      <!-- -->
     </v-app-bar>
 
-    <v-container class="request">
+    <v-container class="request px-5">
       <v-row
         v-show="!success"
-        class="justify-space-around mt-2px"
+        class="justify-space-around mt-3"
         style="height:500px"
       >
-        <v-col cols="12" class="my-3 pt-7 ">
-          <h2 class="sub-title-fields">
-            <b> {{ websiteData.name }}</b>
-            {{ $t('request.' + type + '.description') }}
-          </h2>
-        </v-col>
+        <v-row
+          v-if="requestType == 'wallid_connect'"
+          class="justify-space-around align-content-start "
+        >
+          <v-col cols="9" class="pt-0 pb-0">
+            <h2 class="sub-title-fields">
+              <b> {{ websiteData.name }}</b>
+              {{ $t('request.' + requestType + '.description') }}
+            </h2>
+          </v-col>
+        </v-row>
 
         <!-- website info and wallet -->
-        <v-col cols="4" class="pr-1 pt-4 mr-n14 text-center">
-          <WebSiteLogo :url="websiteData.icon" :name="websiteData.name" />
+        <v-col cols="4" class="pr-1 pt-4 mr-n16 text-center">
+          <WebSiteLogo
+            :size="58"
+            :imageURL="websiteData.icon"
+            :name="websiteData.name"
+          />
         </v-col>
 
-        <v-col cols="4" class="px-0 pt-4">
+        <v-col cols="3" class="px-0 pt-4 mx-n16">
           <v-divider class="dashed" />
         </v-col>
 
-        <v-col cols="4" class="pl-1 pt-4 ml-n14 text-center">
+        <v-col
+          v-if="getAssetInfo && getAssetInfo.length == 2"
+          cols="4"
+          class="pl-1 pt-4 ml-n16 text-center"
+        >
+          <StoredProfileImg
+            class="mt-n2 ml-n2"
+            :size="58"
+            :name="getAssetInfo[0]"
+          />
+
+          <p class="FIELD-TEXT">{{ getAssetInfo[1] | truncate(12, '...') }}</p>
+        </v-col>
+        <v-col v-else cols="4" class="pl-1 pt-4 ml-n16 text-center">
           <jazz-icon
             :address="walletAddress"
             :id="'request'"
-            :size="62"
-            :margin="3"
+            :size="50"
+            :margin="2"
           />
           <p class="FIELD-TEXT">{{ address | truncate(12, '...') }}</p>
         </v-col>
-        <v-col cols="10" v-if="type == 'wallid_connect'" class="px-4">
-          <p
-            class="FIELD-TEXT text-center"
-            v-html="$t('request.' + type + '.permissions')"
-          ></p>
-          <p
-            class="FIELD-TEXT text-center"
-            v-html="$t('request.' + type + '.level[' + level + ']')"
-          ></p>
+
+        <v-row
+          v-if="requestType === 'wallet_sign'"
+          class="justify-space-around align-content-start "
+        >
+          <v-col cols="8" class="" style="border-bottom: solid 1px #eeeeee">
+            <h2 class="normal-text">
+              {{ $t('request.' + requestType + '.label[0]') }}
+            </h2>
+          </v-col>
+          <v-col
+            cols="8"
+            class="px-0 pb-5"
+            style="border-bottom: solid 1px #eeeeee; max-height: 170px; overflow-y: auto;"
+          >
+            <p class="SECUNDARY-LINKS text-left mb-3">
+              {{ $t('request.' + requestType + '.label[1]') }}
+            </p>
+            <p
+              class="SECUNDARY-LINKS text-left"
+              style="word-break: break-word;"
+            >
+              {{ signatureMessage }}
+            </p>
+          </v-col>
+        </v-row>
+
+        <v-row
+          v-else-if="requestType !== 'wallid_connect'"
+          class="justify-space-around align-content-start mt-2px"
+        >
+          <v-col cols="8" class="pt-5 pb-0">
+            <h2 class="sub-title-fields">
+              <b> {{ websiteData.name }}</b>
+              {{ $t('request.description') }}
+            </h2>
+          </v-col>
+          <v-col cols="7" class="">
+            <div class="request-list-permissions text-center">
+              <p class="sub-title-fields text-center">
+                <span style="font-size:22px; line-height: 0;"> &#8226; </span>
+                {{ $t('request.' + requestType + '.description') }}
+              </p>
+            </div>
+          </v-col>
+        </v-row>
+
+        <v-row
+          v-if="requestType !== 'wallid_connect'"
+          class="justify-center align-content-start mt-2px"
+        >
+          <v-col cols="8" class="text-left d-flex pb-0 px-0">
+            <label class="SECUNDARY-LINKS">
+              {{ $t('request.currentLevel') }}
+            </label>
+          </v-col>
+          <v-col
+            cols="6"
+            class=" d-flex pb-2 px-0"
+            style="border-bottom: solid 1px #eee;"
+          >
+            <p
+              class="SECUNDARY-LINKS text-left"
+              v-html="getCurrentLevel.label"
+            ></p>
+            <v-tooltip bottom :content-class="'connection-level-tooltip'">
+              <template v-slot:activator="{ on, attrs }">
+                <span v-bind="attrs" v-on="on" class="d-flex align-center ml-2">
+                  <TooltipIcon />
+                </span>
+              </template>
+              <span>
+                {{ getCurrentLevel.tooltip }}
+              </span>
+            </v-tooltip>
+          </v-col>
+          <v-col
+            cols="2"
+            class="justify-end d-flex pb-2 px-0"
+            style="border-bottom: solid 1px #eee;"
+          >
+            <a
+              @click="edit()"
+              class="WARNING-NOTES-1 text-right text-decoration-none"
+            >
+              {{ $t('request.edit') }}
+            </a>
+          </v-col>
+        </v-row>
+
+        <v-col
+          v-if="requestType == 'wallid_connect'"
+          cols="10"
+          class="px-4 pt-10 direction-column"
+        >
+          <p class="SECUNDARY-LINKS text-left">
+            {{ $t('request.wallid_connect.permissions') }}
+          </p>
+
+          <v-radio-group
+            class="levels-radio-group"
+            v-model="permissionLevel"
+            hide-details
+          >
+            <v-radio
+              v-for="l in $t('request.wallid_connect.levels')"
+              :key="l.level"
+              :value="l.level"
+            >
+              <template #label>
+                <p class="mr-1" v-html="l.label"></p>
+
+                <v-tooltip bottom :content-class="'connection-level-tooltip'">
+                  <template v-slot:activator="{ on, attrs }">
+                    <div class="d-flex" v-bind="attrs" v-on="on">
+                      <TooltipIcon />
+                    </div>
+                  </template>
+                  <span>
+                    {{ l.tooltip }}
+                  </span>
+                </v-tooltip>
+              </template>
+            </v-radio>
+          </v-radio-group>
         </v-col>
 
-        <v-col cols="10" class="px-6 pb-8">
-          <router-link class="links" to="/">
-            {{ $t('request.bScenes') }}
-          </router-link>
+        <v-col
+          v-if="requestType == 'wallid_connect'"
+          cols="10"
+          class="px-4 py-0 direction-column"
+        >
+          <p class="WARNING-NOTES-1 text-left" style="color:#b8b9bb">
+            Only connect with sites you trust
+          </p>
         </v-col>
-
         <!-- Option buttons -->
         <v-col v-show="!success" cols="6" class="pr-2 pb-0" align-self="end">
           <v-btn text class="cancel-btn" @click="cancel">
@@ -77,60 +219,68 @@
             :disabled="disableButtonRequest"
             @click="authorizeRequest(12)"
           >
-            {{ $t('request.' + type + '.button') }}
+            {{ $t('request.' + requestType + '.button') }}
           </v-btn>
         </v-col>
       </v-row>
 
       <v-row v-show="success" class="justify-space-around connected mt-2px">
-        <v-col cols="12" class="my-3 py-7 px-14">
+        <v-col cols="12" class="pt-8 pb-1 px-14">
           <div class="back-arrow">
             <h2 class="sub-title-fields">
               <b> {{ websiteData.name }}</b>
-              {{ $t('request.' + type + '.successText') }}
+              {{ $t('request.' + requestType + '.successText') }}
             </h2>
           </div>
         </v-col>
 
         <!-- website info and wallet -->
-        <v-col cols="4" class="pr-0 pt-4">
-          <WebSiteLogo :url="websiteData.icon" :name="websiteData.name" />
+        <v-col cols="4" class="pr-0 pt-4 mr-n7">
+          <WebSiteLogo
+            :size="58"
+            :imageURL="websiteData.icon"
+            :name="websiteData.name"
+          />
         </v-col>
 
-        <v-col cols="4" class="px-0 pt-4 check">
+        <v-col cols="4" class="px-0 pt-4 mx-n16 check">
           <v-divider class="dashed" />
           <CheckSuccessIcon />
           <v-divider class="dashed" />
         </v-col>
 
-        <v-col cols="4" class="pl-0 pt-4">
+        <v-col cols="4" class="pl-0 pt-4 ml-n7">
           <jazz-icon
             :address="walletAddress"
             :id="'request-2'"
-            :size="62"
-            :margin="3"
+            :size="50"
+            :margin="2"
           />
           <p class="FIELD-TEXT">{{ address | truncate(12, '...') }}</p>
         </v-col>
       </v-row>
-      <!-- Option buttons -->
     </v-container>
   </v-app>
 </template>
 
 <script>
 import WarningIcon from '../images/icon-warning-blue';
+import TooltipIcon from '../images/icons/icon-tooltip';
+
 import BrokenLine from '../images/broken-line';
 import CheckSuccessIcon from '../images/icon-sucessfully';
 import WebSiteLogo from '../components/WebSiteLogo';
+import StoredProfileImg from '../components/StoredProfileImg';
 
 import {
   CANCEL_REQUEST,
   AUTHORIZE_REQUEST,
   ACCESS_LEVEL,
+  GET_ACCESS_LEVEL,
   CONNECT,
   IMPORT,
   UPDATE_CONNECTED,
+  ADDRESS,
 } from '../store/actions';
 import { mapGetters, mapState } from 'vuex';
 
@@ -140,12 +290,32 @@ export default {
     WarningIcon,
     BrokenLine,
     WebSiteLogo,
+    StoredProfileImg,
+    TooltipIcon,
   },
   computed: {
     ...mapGetters(['address', 'credentials', 'connections']),
     ...mapState({
       walletAddress: 'address',
     }),
+    requestType() {
+      return this.request.type;
+    },
+    requestData() {
+      return this.request.data;
+    },
+    signatureMessage() {
+      return this.request.data?.join?.('; ');
+    },
+    getAssetInfo() {
+      if (this.requestType === 'wallid_export_asset') {
+        return this.requestData?.[1].split?.(':');
+
+        // MetaMask:0x11ef4f801a93ae06a00b13086d0066137f1937bd
+      } else {
+        return null;
+      }
+    },
     getCurrentLevel() {
       console.log(this.currentLevel);
       return (
@@ -157,54 +327,42 @@ export default {
   mounted() {
     // this.debug('Request: ', this.request);
   },
-  created() {
+  async created() {
     this.debug('Address: ', this.address);
     this.debug('Request: ', this.request);
     this.debug('Request origin: ', this.request.origin);
 
-    this.type = this.request.type;
-    this.debug('Request type: ', this.type);
+    // this.type = this.request.type;
+    this.debug('Request type: ', this.requestType);
     this.websiteData = this.getWebsiteInfo(this.request.origin);
 
-    switch (this.type) {
+    // Get current access level to requesting webiste
+    this.currentLevel = await this.$store.dispatch(GET_ACCESS_LEVEL, {
+      url: this.request.origin,
+    });
+    console.log('currentLevel', this.currentLevel);
+
+    switch (this.requestType) {
       case 'wallet_sign':
       case 'wallet_sign_erc191':
       case 'wallet_ec_sign':
         break;
       case 'wallid_open':
-        var params;
-        params = {
-          url: this.request.origin,
-          icon: this.request.origin + '/favicon.ico',
-          name: this.getDomain(this.request.origin),
-        };
-        this.$store
-          .dispatch(ACCESS_LEVEL, { url: this.request.origin, level: 1 })
-          .then((hasAccess) => {
-            this.debug('hasAccess', hasAccess, params);
-            if (!hasAccess) {
-              this.$store.dispatch(CONNECT, { params }).then(() => {
-                this.debug('Connected');
-                this.findCredential(this.request.data);
-              });
-            } else {
-              this.findCredential(this.request.data);
-              this.updateConnected(this.request.origin);
-            }
-          });
+        this.findCredential(this.request.data);
+        this.updateConnected(this.request.origin);
         break;
       case 'wallid_connect':
-        this.level = this.request.data.level || 1;
+        // Rework this: is this realy needed??
         this.$store
           .dispatch(ACCESS_LEVEL, {
             url: this.request.origin,
-            level: this.level,
+            level: this.request.level,
           })
           .then((hasAccess) => {
             this.debug('hasAccess', hasAccess);
             if (hasAccess) {
               Promise.resolve(
-                this.request.callback(null, 'EXECUTED')
+                this.request.callback(null, 'ALREADY_CONNECTED')
               ).then(() => window.close());
             }
           });
@@ -213,14 +371,9 @@ export default {
         console.error('Invalid Request Type');
         break;
       case 'wallid_address':
-        console.error('Invalid Request Type');
-        break;
       case 'wallid_import_sign':
       case 'wallid_import_cred':
       case 'wallid_token':
-      case 'wallid_import':
-      case 'wallet_encrypt':
-      case 'wallet_decrypt':
         var params;
         params = {
           origin: this.request.origin,
@@ -241,27 +394,6 @@ export default {
             }
           });
         break;
-      case 'wallid_extract':
-        var params;
-        params = {
-          origin: this.request.origin,
-          icon: this.request.origin + '/favicon.ico',
-          name: this.getDomain(this.request.origin),
-        };
-        this.$store
-          .dispatch(ACCESS_LEVEL, { url: this.request.origin, level: 1 })
-          .then((hasAccess) => {
-            this.debug('hasAccess', hasAccess, params);
-            if (!hasAccess) {
-              this.$store.dispatch(CONNECT, params).then(() => {
-                this.debug('Connected');
-                // this.authorizeRequest(0);
-              });
-            } else {
-              this.authorizeRequest(0);
-            }
-          });
-        break;
       default:
         console.log('Invalid Request Type');
         break;
@@ -273,6 +405,12 @@ export default {
     },
   },
   methods: {
+    edit() {
+      this.$router.push({
+        name: 'sites',
+        params: { toEditSite: this.websiteData.url },
+      });
+    },
     updateConnected(site) {
       if (this.connections) {
         let connectedSite = this.connections.find((e) => {
@@ -304,11 +442,15 @@ export default {
     getWebsiteInfo(origin) {
       let name = origin.split('//')[1].split('/')[0];
       let icon = origin + '/favicon.ico';
-      return { name: name, icon: icon };
+      return { name: name, icon: icon, url: origin };
     },
 
     authorizeRequest(time = 30) {
       this.disableButtonRequest = true;
+
+      if (this.request.type == 'wallid_connect') {
+        this.request.data.level = this.permissionLevel;
+      }
       this.$store
         .dispatch(AUTHORIZE_REQUEST, {
           data: this.request.data,
@@ -318,7 +460,7 @@ export default {
           name: this.websiteData.name,
         })
         .then((res) => {
-          if (this.request.type == 'wallid_connect') this.success = true;
+          // if (this.request.type == 'wallid_connect') this.success = true;
           if (
             this.request.type != 'wallid_import_cred' &&
             this.request.type != 'wallid_import_sign' &&
@@ -327,11 +469,12 @@ export default {
             setTimeout(() => {
               this.$notification ? window.close() : this.$router.push('/home');
             }, time * 100);
-            console.log(res);
+            console.log('authorizeRequest res:', res);
           } else {
             this.$router.push('/home');
           }
-        });
+        })
+        .catch((err) => console.error(err));
     },
     cancel() {
       this.$store
@@ -351,35 +494,25 @@ export default {
   data() {
     return {
       disableButtonRequest: false,
-      type: '',
+      // type: '',
       success: false,
       websiteData: { name: '', icon: '' },
+      permissionLevel: 1,
+      currentLevel: -1,
     };
   },
 };
 </script>
 
 <style lang="scss">
-[id^='metamask-logo-request']:not([class*='icon']) {
-  max-height: 72px;
-  max-width: 72px;
-
-  border-radius: 50%;
-  border: solid 2px #b8b9bb;
-  margin: auto;
-  margin-bottom: 12px;
-  // margin-left: 0;
-  .connected & {
-    border: solid 2px var(--turquoise-green);
-  }
-}
-
 [id^='metamask-logo-request'] + p {
   // max-width: 76px;
   word-break: break-all;
 }
 
 .plugin-request {
+  .request-list-permissions {
+  }
   .float-bottom {
     position: absolute;
     bottom: 14px;
@@ -418,7 +551,7 @@ export default {
     z-index: -1;
   }
   .dashed {
-    margin-top: 38px;
+    margin-top: 29px;
     border: dashed thin #b8b9bb;
   }
   .connected {
@@ -430,7 +563,7 @@ export default {
       svg {
         height: 32px;
         width: 32px;
-        margin-top: 22px;
+        margin-top: 13px;
       }
     }
   }
