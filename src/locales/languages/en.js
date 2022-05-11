@@ -105,7 +105,7 @@ export default {
     edit: 'Edit',
     wallid_connect: {
       title: 'Connection Request',
-      description: ' is asking for permission to connect to MyWalliD:',
+      description: ' is asking for your permission to connect to MyWalliD:',
       alert: 'Only connect with sites you fully trust.',
       permissions:
         'Select one of the following permission levels you want to give to this site:',
@@ -193,6 +193,16 @@ export default {
     wallid_import_asset: {
       title: 'Authorisation Request',
       description: 'Store ID assets in your wallet',
+      button: 'Authorise',
+    },
+    wallet_verify: {
+      title: 'Authorisation Request',
+      description: 'Verify encrypted data integrity',
+      button: 'Authorise',
+    },
+    wallet_sign_ec: {
+      title: 'Authorisation Request',
+      description: 'Alter the status of the credential',
       button: 'Authorise',
     },
     bScenes: "Know what's happening behind the scenes",

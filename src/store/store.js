@@ -41,6 +41,7 @@ import {
   WALLID_VERIFY,
   WALLID_EXPORT,
   WALLID_IMPORT_ASSET,
+  WALLET_SIGN_EC,
 } from './actions';
 
 import * as modules from './modules';
@@ -432,13 +433,13 @@ export default new Vuex.Store({
           });
       });
     },
-    [DECRYPT]: ({ commit, state }, data) => {
+    [DECRYPT]: ({ commit, state }, { data }) => {
       return new Promise((resolve, reject) => {
         console.log('Action DECRYPT');
         state.debug('Data: ', data);
-        API.decryptData(...data)
+        API.decryptData(data)
           .then((res) => {
-            resolve(res);
+            resolve(JSON.parse(res));
           })
           .catch((e) => {
             console.error(e);
@@ -580,6 +581,20 @@ export default new Vuex.Store({
 
         try {
           resolve(API.importAsset(...params));
+        } catch (error) {
+          console.error(error);
+          reject(error.message);
+        }
+      });
+    },
+
+    [WALLET_SIGN_EC]: ({ state, commit, dispatch }, params) => {
+      return new Promise((resolve, reject) => {
+        console.log('Action WALLET_SIGN_EC');
+        console.log('Params: ', params);
+
+        try {
+          resolve(API.generateECSignature(...params));
         } catch (error) {
           console.error(error);
           reject(error.message);

@@ -40,19 +40,14 @@
       </v-col>
       <v-col cols="12">
         <v-tooltip
-          :disabled="card.status == 'active'"
+          :disabled="card.status != 'active'"
           content-class="wallet-tooltip credential"
           bottom
         >
           <template v-slot:activator="{ on }">
             <div v-on="on">
-              <v-btn
-                text
-                @click="proofPage"
-                :disabled="card.status != 'active'"
-                class="advance-btn "
-              >
-                {{ $t('credentials.menu[1]') }}
+              <v-btn text @click="proofPage" class="advance-btn ">
+                {{ $t('credentials.menuCredential[1]') }}
               </v-btn>
             </div>
           </template>
@@ -75,7 +70,7 @@
           style="text-decoration:none"
         >
           <v-btn :disabled="!downloadURL" text class="advance-btn">
-            {{ $t('credentials.menu[2]') }}
+            {{ $t('credentials.menuCredential[2]') }}
           </v-btn>
         </a>
       </v-col>
